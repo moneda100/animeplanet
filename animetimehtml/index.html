@@ -1,0 +1,206 @@
+<html>
+ <head>
+  <title>
+   Calculadora de Tiempo de Anime
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
+ </head>
+ <body class="bg-black font-roboto text-white">
+  <div class="container mx-auto p-4">
+   <div class="max-w-md mx-auto bg-gray-800 rounded-lg shadow-md overflow-hidden md:max-w-lg">
+    <div class="md:flex">
+     <div class="w-full p-4">
+      <div class="relative">
+       <img alt="Anime themed background with vibrant colors and characters depicting an epic battle scene" class="w-full h-48 object-cover" height="200" src="https://storage.googleapis.com/a1aa/image/PMU31b06gNdgDrYRpB2LSl4EdSlfyxzPYJMExhM5pHc.jpg" width="400"/>
+      </div>
+      <div class="p-4" style="background-color: #006400;">
+       <h1 class="text-2xl font-bold text-white" style="font-family: 'Press Start 2P', cursive;">
+        AnimeTime
+       </h1>
+       <p class="mt-2 text-gray-300">
+        Calcula el tiempo total necesario para ver un anime completo.
+       </p>
+       <div class="mt-4">
+        <label class="block text-gray-300">
+         Número de Episodios:
+        </label>
+        <input class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" id="episodios" type="number"/>
+       </div>
+       <div class="mt-4">
+        <label class="block text-gray-300">
+         Duración por Episodio (min):
+        </label>
+        <input class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" id="duracion" type="number"/>
+       </div>
+       <div class="mt-6 flex justify-between space-x-2">
+        <button class="w-1/5 px-2 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" onclick="calcular()">
+         <i class="fas fa-calculator"></i>
+        </button>
+        <button class="w-1/5 px-2 py-2 bg-red-600 text-white font-semibold rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" onclick="resetear()">
+         <i class="fas fa-undo"></i>
+        </button>
+        <button class="w-1/5 px-2 py-2 bg-yellow-600 text-white font-semibold rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" onclick="guardar()">
+         <i class="fas fa-save"></i>
+        </button>
+        <button class="w-1/5 px-2 py-2 bg-green-600 text-white font-semibold rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="mostrarGuardados()">
+         <i class="fas fa-list"></i>
+        </button>
+        <button class="w-1/5 px-2 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="mostrarComparativa()">
+         <i class="fas fa-table"></i>
+        </button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div id="comparativaModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden">
+   <div class="bg-gray-800 rounded-lg shadow-md p-4 max-w-lg w-full">
+    <div class="flex justify-between items-center mb-4">
+     <h2 class="text-xl font-bold text-white">
+      Comparativa de Capítulos y Tiempo
+     </h2>
+     <button class="text-white" onclick="cerrarComparativa()">
+      <i class="fas fa-times"></i>
+     </button>
+    </div>
+    <div id="comparativaContent" class="text-gray-300">
+    </div>
+    <div class="flex justify-between mt-4">
+     <button class="px-4 py-2 bg-gray-600 text-white font-semibold rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" onclick="paginaAnterior()">
+      Anterior
+     </button>
+     <button class="px-4 py-2 bg-gray-600 text-white font-semibold rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" onclick="paginaSiguiente()">
+      Siguiente
+     </button>
+    </div>
+   </div>
+  </div>
+  <div id="guardadosModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden">
+   <div class="bg-gray-800 rounded-lg shadow-md p-4 max-w-lg w-full">
+    <div class="flex justify-between items-center mb-4">
+     <h2 class="text-xl font-bold text-white">
+      Resultados Guardados
+     </h2>
+     <button class="text-white" onclick="cerrarGuardados()">
+      <i class="fas fa-times"></i>
+     </button>
+    </div>
+    <div id="guardadosContent" class="text-gray-300">
+    </div>
+   </div>
+  </div>
+  <script>
+   let paginaActual = 1;
+        const capitulosPorPagina = 10;
+
+        function calcular() {
+            const episodios = document.getElementById('episodios').value;
+            const duracion = document.getElementById('duracion').value;
+
+            if (episodios <= 0 || duracion <= 0) {
+                alert("Los valores deben ser mayores que cero");
+                return;
+            }
+
+            const totalMinutos = episodios * duracion;
+            const horas = Math.floor(totalMinutos / 60);
+            const minutos = totalMinutos % 60;
+            const dias = Math.floor(horas / 24);
+            const horasRestantes = horas % 24;
+
+            const startTime = new Date();
+            const endTime = new Date(startTime.getTime() + totalMinutos * 60000);
+
+            const startTimeStr = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const endTimeStr = endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            const startDateStr = startTime.toLocaleDateString('es-ES');
+            const endDateStr = endTime.toLocaleDateString('es-ES');
+
+            const resultado = `Para ver el anime completo, necesitarás ${dias} días, ${horasRestantes} horas y ${minutos} minutos.\nHora de inicio: ${startTimeStr} (${startDateStr})\nHora de finalización: ${endTimeStr} (${endDateStr})\nNúmero de Episodios: ${episodios}\nDuración por Episodio: ${duracion} minutos`;
+
+            alert(resultado);
+            return resultado;
+        }
+
+        function resetear() {
+            document.getElementById('episodios').value = '';
+            document.getElementById('duracion').value = '';
+        }
+
+        function guardar() {
+            const resultado = calcular();
+            if (resultado) {
+                const fechaGuardado = new Date().toLocaleDateString('es-ES');
+                const resultadoConFecha = `${resultado}\nGuardado el: ${fechaGuardado}`;
+                let resultadosGuardados = JSON.parse(localStorage.getItem('resultados')) || [];
+                resultadosGuardados.push(resultadoConFecha);
+                localStorage.setItem('resultados', JSON.stringify(resultadosGuardados));
+                alert("Resultado guardado exitosamente.");
+            }
+        }
+
+        function mostrarGuardados() {
+            let resultadosGuardados = JSON.parse(localStorage.getItem('resultados')) || [];
+            let guardadosContent = document.getElementById('guardadosContent');
+            guardadosContent.innerHTML = "";
+            if (resultadosGuardados.length === 0) {
+                guardadosContent.innerHTML = "<p>No hay resultados guardados.</p>";
+            } else {
+                resultadosGuardados.forEach(resultado => {
+                    guardadosContent.innerHTML += `<p class="mb-4">${resultado.replace(/\n/g, '<br>')}</p>`;
+                });
+            }
+            document.getElementById('guardadosModal').classList.remove('hidden');
+        }
+
+        function cerrarGuardados() {
+            document.getElementById('guardadosModal').classList.add('hidden');
+        }
+
+        function mostrarComparativa() {
+            document.getElementById('comparativaModal').classList.remove('hidden');
+            actualizarComparativa();
+        }
+
+        function cerrarComparativa() {
+            document.getElementById('comparativaModal').classList.add('hidden');
+        }
+
+        function actualizarComparativa() {
+            let comparativaContent = document.getElementById('comparativaContent');
+            comparativaContent.innerHTML = "";
+            let inicio = (paginaActual - 1) * capitulosPorPagina + 1;
+            let fin = paginaActual * capitulosPorPagina;
+
+            for (let i = inicio; i <= fin; i++) {
+                const totalMinutos = i * 24;
+                const horas = Math.floor(totalMinutos / 60);
+                const minutos = totalMinutos % 60;
+                const dias = Math.floor(horas / 24);
+                const horasRestantes = horas % 24;
+                comparativaContent.innerHTML += `<p>${i} capítulos: ${dias} días, ${horasRestantes} horas y ${minutos} minutos</p>`;
+            }
+        }
+
+        function paginaAnterior() {
+            if (paginaActual > 1) {
+                paginaActual--;
+                actualizarComparativa();
+            }
+        }
+
+        function paginaSiguiente() {
+            if (paginaActual * capitulosPorPagina < 1000) {
+                paginaActual++;
+                actualizarComparativa();
+            }
+        }
+  </script>
+ </body>
+</html>
